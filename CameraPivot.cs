@@ -1,6 +1,6 @@
 using Godot;
 using System;
-using Cam;
+using CameraControl;
 public partial class CameraPivot : Marker3D
 {
 	// Camera args
@@ -9,52 +9,36 @@ public partial class CameraPivot : Marker3D
 	private CameraAngleControl CamAngle;
 	public override void _Ready()
 	{
-		CamDistance = new CameraDistanceControal(Camera, 20, 1);
-		CamAngle=new CameraAngleControl(Camera,0,0,0);
+		CamDistance = new CameraDistanceControal(Camera, 10)
+		{
+			Speed = 1
+		};
+		CamAngle = new CameraAngleControl(this, 0, 0, 0)
+		{
+			PitchRotationSpeed = 10,
+			YawRotationSpeed = 10
+		};
+		 Input.SetMouseMode(Input.MouseModeEnum.Captured);
 	}
 	public override void _Process(double delta)
 	{
-
+		CamAngle.AddPitch((float)delta);
+		CamAngle.AddYaw((float)delta);
 	}
 	public override void _Input(InputEvent @event)
 	{
 		if (@event is InputEventMouseButton mouseEvent)
 		{
-			// if (mouseEvent.ButtonIndex == MouseButton.Left && mouseEvent.Pressed)
-			// {
-			// 	IsFree = IsMouseControl = true;
-			// }
-			// else if (mouseEvent.ButtonIndex == MouseButton.Right && mouseEvent.Pressed)
-			// {
-			// 	IsFree = false;
-			// 	IsMouseControl = !IsFree;
-			// }
-			// else
-			// {
-			// 	IsFree = IsMouseControl = false;
-			// }
-			if (mouseEvent.Factor != 0) // 只处理有效滚动事件，过滤无效事件
-			{
-				if (mouseEvent.ButtonIndex == MouseButton.WheelUp)
-				{
-					GD.Print($"Wheel Up: {mouseEvent.Factor}");
-					CamDistance.AddDistance(-mouseEvent.Factor);
-				}
-
-				if (mouseEvent.ButtonIndex == MouseButton.WheelDown)
-				{
-					GD.Print($"Wheel Down: {mouseEvent.Factor}");
-					CamDistance.AddDistance(mouseEvent.Factor);
-				}
-			}
+			//Wheel Control
+			if (mouseEvent.ButtonIndex == MouseButton.WheelUp)
+				CamDistance.AddDistance(-mouseEvent.Factor);
+			else if (mouseEvent.ButtonIndex == MouseButton.WheelDown)
+				CamDistance.AddDistance(mouseEvent.Factor);
 		}
-		// if (@event is InputEventMouseMotion mouseMotion)
-		// {
-		// 	MouseOffset = NormalAxis(mouseMotion.Relative);
-		// }
-		// else
-		// {
-		// 	MouseOffset = Vector2.Zero;
-		// }
+		if (@event is InputEventMouseMotion mouseMotion)
+		{
+			CamAngle.MouseOffsetX = mouseMotion.Relative.X;
+			CamAngle.MouseOffsetY = mouseMotion.Relative.Y;
+		}
 	}
 }

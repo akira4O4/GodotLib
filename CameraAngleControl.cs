@@ -1,18 +1,11 @@
 using Godot;
 using System;
-using System.Runtime.CompilerServices;
-using Math
-/*
-Node3D (Target Node)
-    |
-    -Camera3D
-*/
 
 namespace CameraControl
 {
     public class CameraAngleControl
     {
-        private Camera3D _camera;
+        // private Camera3D _camera;
         private Node3D _targetNode;
         private float _pitch = 0;
         private float _yaw = 0;
@@ -21,42 +14,45 @@ namespace CameraControl
         private float _yawRotationSpeed = 1;
         private float _rollRotationSpeed = 1;
 
-        private Vector2 _mouseOffset;
-
         //min max rotation speed 
         private readonly float _minRotationSpeed = 1;
         private readonly float _maxRotationSpeed = 100;
 
         //min max pitch rotation angle
-        private readonly float _maxPitchAngle = 90.0f;
-        private readonly float _minPitchAngle = -45.0f;
+        private readonly float _maxPitchAngle = 45.0f;
+        private readonly float _minPitchAngle = -90.0f;
 
         //min max mouse offset
         private readonly float _maxMouseOffset = 100.0f;
         private readonly float _minMouseOffset = -100.0f;
-
-        private readonly float _minRotationThr = 0.01f;
-
-        //View control mode
         private bool _freeView = true;
-        private bool _controlView = !_freeView;
-
+        private bool _controlView = false;
+        public bool YAxisReversed { get; set; } = false;
+        public bool XAxisReversed { get; set; } = false;
         public float Pitch
         {
             get => _pitch;
-            private set => _pitch = clampAngle(value, _minPitchAngle, _maxPitchAngle);
+            private set
+            {
+                _pitch = Math.Clamp(value, _minPitchAngle, _maxPitchAngle);
+            }
         }
         public float Yaw
         {
             get => _yaw;
-            private set => _yaw = value;
+            private set
+            {
+                if (value < 0)
+                    _yaw = -((-value) % 360.0f);
+                else
+                    _yaw = value % 360.0f;
+            }
         }
         public float Roll
         {
             get => _roll;
             private set => _roll = value;
         }
-
         public bool FreeView
         {
             get { return _freeView; }
@@ -71,17 +67,22 @@ namespace CameraControl
             get { return _controlView; }
             set
             {
-                _freeView = !value;
                 _controlView = value;
+                _freeView = !value;
             }
         }
-
-        public Vector2 MouseOffset
+        private float _mouseOffsetX = 0;
+        public float MouseOffsetX
         {
-            get => _mouseOffset;
-            set => _mouseOffset = clampOffset(value);
+            get => _mouseOffsetX;
+            set => _mouseOffsetX = clampOffset(value);
         }
-
+        private float _mouseOffsetY = 0;
+        public float MouseOffsetY
+        {
+            get => _mouseOffsetY;
+            set => _mouseOffsetY = clampOffset(value);
+        }
         public float PitchRotationSpeed
         {
             get => _pitchRotationSpeed;
@@ -97,26 +98,17 @@ namespace CameraControl
             get => _rollRotationSpeed;
             set => _rollRotationSpeed = Math.Clamp(value, _minRotationSpeed, _maxRotationSpeed);
         }
-
         public CameraAngleControl(Node3D targetNode, float pitch, float yaw, float roll)
         {
             _targetNode = targetNode;
             Pitch = pitch;
             Yaw = yaw;
             Roll = roll;
-            applyRotation(Pitch,Yaw,Roll);
+            applyRotation(Pitch, Yaw, Roll);
         }
-        private float clampAngle(float angle, minAngle, maxAngle)
+        private float clampOffset(float offset)
         {
-            if (angle < -360.0f) angle += 360.0f;
-            if (angle > 360.0f) angle -= 360.0f;
-            return Math.Clamp(angle, minAngle, maxAngle);
-        }
-        private Vector2 clampOffset(Vector2 offset)
-        {
-            var x = Math.Clamp(offset.X, _minMouseOffset, _maxMouseOffset);
-            var y = Math.Clamp(offset.Y, _minMouseOffset, _maxMouseOffset);
-            return new Vector2(x, y);
+            return Math.Clamp(offset, _minMouseOffset, _maxMouseOffset);
         }
         private void applyRotation(float? pitch, float? yaw, float? roll)
         {
@@ -147,13 +139,25 @@ namespace CameraControl
         }
         public void AddPitch(float delta)
         {
-            Pitch += delta * PitchRotationSpeed;
-            applyRotation(Pitch, null, null);
+
+            if (MouseOffsetY != 0)
+            {
+                float y_offset = (YAxisReversed ? -1 : 1) * MouseOffsetY;
+                Pitch += delta * y_offset * PitchRotationSpeed;
+                applyRotation(Pitch, null, null);
+                MouseOffsetY = 0;
+            }
+
         }
         public void AddYaw(float delta)
         {
-            Yaw += delta * YawRotationSpeed;
-            applyRotation(null, Yaw, null);
+            if (MouseOffsetX != 0)
+            {
+                float x_offset = (XAxisReversed ? 1 : -1) * MouseOffsetX;
+                Yaw += delta * x_offset * YawRotationSpeed;
+                applyRotation(null, Yaw, null);
+                MouseOffsetX = 0;
+            }
         }
         public void AddRoll(float delta)
         {

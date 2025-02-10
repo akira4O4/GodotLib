@@ -8,7 +8,7 @@ namespace CameraControl
         private float _distance = 10;
         private readonly Camera3D _camera;
         private readonly float _minDistance = 2;
-        private readonly float _maxDistance = 30;
+        private readonly float _maxDistance = 10;
         private readonly float _minSpeed = 1;
         private readonly float _maxSpeed = 10;
 
@@ -20,9 +20,9 @@ namespace CameraControl
         public float Speed
         {
             get => _speed;
-            private set => _speed = Math.Clamp(value, _minSpeed, _maxSpeed);
+            set => _speed = Math.Clamp(value, _minSpeed, _maxSpeed);
         }
-        public CameraDistanceControal(Camera3D camera, float distance, float speed)
+        public CameraDistanceControal(Camera3D camera, float distance)
         {
             if (camera is null)
             {
@@ -32,15 +32,14 @@ namespace CameraControl
             {
                 _camera = camera;
                 Distance = distance;
-                Speed = speed;
                 SetDistance(Distance);
             }
         }
         private void applyDistance()
         {
-            Vector3 position = camera.Position;
+            Vector3 position = _camera.Position;
             position.Z = Distance;
-            camera.Position = position;
+            _camera.Position = position;
         }
         public void SetDistance(float distance)
         {
