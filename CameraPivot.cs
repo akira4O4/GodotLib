@@ -10,7 +10,7 @@ public partial class CameraPivot : Marker3D
 	public override void _Ready()
 	{
 		CamDistance = new CameraDistanceControal(Camera, 20, 1);
-		CamAngle=new CameraAngleControl(Camera,0,0,0,1);
+		CamAngle=new CameraAngleControl(Camera,0,0,0);
 	}
 	public override void _Process(double delta)
 	{

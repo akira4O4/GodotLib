@@ -1,4 +1,4 @@
-# Godot Camera Control
+# Godot 3D Camera Control
 
 ---
 

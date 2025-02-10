@@ -1,26 +1,26 @@
 using Godot;
 using System;
-namespace Cam
+namespace CameraControl
 {
     public class CameraDistanceControal
     {
-        private float speed = 1;
-        private float distance = 10;
-        private readonly Camera3D camera;
-        private readonly float minDistance = 2;
-        private readonly float maxDistance = 30;
-        private readonly float minSpeed = 1;
-        private readonly float maxSpeed = 10;
+        private float _speed = 1;
+        private float _distance = 10;
+        private readonly Camera3D _camera;
+        private readonly float _minDistance = 2;
+        private readonly float _maxDistance = 30;
+        private readonly float _minSpeed = 1;
+        private readonly float _maxSpeed = 10;
 
         public float Distance
         {
-            get => distance;
-            private set => distance = Math.Clamp(value, minDistance, maxDistance);
+            get => _distance;
+            private set => _distance = Math.Clamp(value, _minDistance, _maxDistance);
         }
         public float Speed
         {
-            get => speed;
-            private set => speed = Math.Clamp(value, minSpeed, maxSpeed);
+            get => _speed;
+            private set => _speed = Math.Clamp(value, _minSpeed, _maxSpeed);
         }
         public CameraDistanceControal(Camera3D camera, float distance, float speed)
         {
@@ -30,14 +30,13 @@ namespace Cam
             }
             else
             {
-                this.camera = camera;
+                _camera = camera;
                 Distance = distance;
                 Speed = speed;
                 SetDistance(Distance);
             }
         }
-
-        private void ApplyDistance()
+        private void applyDistance()
         {
             Vector3 position = camera.Position;
             position.Z = Distance;
@@ -46,14 +45,12 @@ namespace Cam
         public void SetDistance(float distance)
         {
             Distance = distance;
-            ApplyDistance();
+            applyDistance();
         }
-
         public void AddDistance(float delta)
         {
             Distance += delta * Speed;
-            ApplyDistance();
-            GD.Print($"Set Camera Distance: {Distance}");
+            applyDistance();
         }
     }
 }

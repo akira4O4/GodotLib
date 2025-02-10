@@ -1,125 +1,164 @@
 using Godot;
 using System;
 using System.Runtime.CompilerServices;
-namespace Cam
+using Math
+/*
+Node3D (Target Node)
+    |
+    -Camera3D
+*/
+
+namespace CameraControl
 {
     public class CameraAngleControl
     {
-        private Camera3D camera;
-        private float pitch = 0;
-        private float yaw = 0;
-        private float roll = 0;
-        private float mouseRotationSpeed=1;
-        public Vector2 mouseOffset;
+        private Camera3D _camera;
+        private Node3D _targetNode;
+        private float _pitch = 0;
+        private float _yaw = 0;
+        private float _roll = 0;
+        private float _pitchRotationSpeed = 1;
+        private float _yawRotationSpeed = 1;
+        private float _rollRotationSpeed = 1;
+
+        private Vector2 _mouseOffset;
+
+        //min max rotation speed 
+        private readonly float _minRotationSpeed = 1;
+        private readonly float _maxRotationSpeed = 100;
+
+        //min max pitch rotation angle
+        private readonly float _maxPitchAngle = 90.0f;
+        private readonly float _minPitchAngle = -45.0f;
+
+        //min max mouse offset
+        private readonly float _maxMouseOffset = 100.0f;
+        private readonly float _minMouseOffset = -100.0f;
+
+        private readonly float _minRotationThr = 0.01f;
+
+        //View control mode
+        private bool _freeView = true;
+        private bool _controlView = !_freeView;
 
         public float Pitch
         {
-            get => pitch;
-            set
-            {
-            }
+            get => _pitch;
+            private set => _pitch = clampAngle(value, _minPitchAngle, _maxPitchAngle);
         }
-
         public float Yaw
         {
-            get => yaw;
-            set
-            {
-            }
+            get => _yaw;
+            private set => _yaw = value;
         }
-
         public float Roll
         {
-            get => roll;
+            get => _roll;
+            private set => _roll = value;
+        }
+
+        public bool FreeView
+        {
+            get { return _freeView; }
             set
             {
+                _freeView = value;
+                _controlView = !value;
             }
         }
-
-        // Mouse args
-        private readonly float MAX_MOUSE_OFFSET = 100.0f;
-        private readonly float MIN_MOUSE_OFFSET = -100.0f;
-        private readonly float MOUSE_ROTATION_THR = 0.01f;
-        private readonly float maxPitchAngle = 90;
-        public bool IsFree { get; set; } = true;
-        public bool IsMouseControl { get; set; } = false;
-        public float MouseRotaionSpeed { get; set; } = 20.0f;
-        public Vector2 MouseOffset { get; set; }
-
-        public CameraAngleControl(Camera3D camera, float pitch, float yaw, float roll, float speed)
+        public bool ControlView
         {
-            this.camera = camera;
-
-        }
-        private Vector2 NormalAxis(Vector2 axis)
-        {
-            var x = Math.Clamp(axis.X, MIN_MOUSE_OFFSET, MAX_MOUSE_OFFSET);
-            var y = Math.Clamp(axis.Y, MIN_MOUSE_OFFSET, MAX_MOUSE_OFFSET);
-            return new Vector2(x, y);
-        }
-
-        //Camera Function
-        public void SetCameraPitch(float angle) //x axis
-        {
-            SetCameraAngle(angle, null, null);
-            GD.Print($"Set Camera Pitch Angle: {angle}");
-        }
-        public void SetCameraYaw(float angle) //y axis
-        {
-            SetCameraAngle(null, angle, null);
-            GD.Print($"Set Camera Yaw Angle: {angle}");
-        }
-        public void SetCameraRoll(float angle)//z axis
-        {
-            SetCameraAngle(null, null, angle);
-            GD.Print($"Set Camera Roll Angle: {angle}");
-        }
-        public void SetCameraAngle(float? x, float? y, float? z)
-        {
-            var rotation = RotationDegrees;
-            if (x.HasValue) rotation.X = x.Value;
-            if (y.HasValue) rotation.Y = y.Value;
-            if (z.HasValue) rotation.Z = z.Value;
-            RotationDegrees = rotation;
-        }
-        public void InitCameraArgs()
-        {
-            if (CheckCamera())
+            get { return _controlView; }
+            set
             {
-                SetCameraDistance(CameraDistance);
-                SetCameraAngle(CameraPitchAngle, CameraYawAngle, CameraRollAngle);
+                _freeView = !value;
+                _controlView = value;
             }
         }
-        public void RestCamera(float angle, float pitch, float yaw, float roll)
+
+        public Vector2 MouseOffset
         {
-            SetCameraDistance(angle);
-            SetCameraAngle(pitch, yaw, roll);
+            get => _mouseOffset;
+            set => _mouseOffset = clampOffset(value);
         }
 
-        private float ClampAngle(float angle)
+        public float PitchRotationSpeed
+        {
+            get => _pitchRotationSpeed;
+            set => _pitchRotationSpeed = Math.Clamp(value, _minRotationSpeed, _maxRotationSpeed);
+        }
+        public float YawRotationSpeed
+        {
+            get => _yawRotationSpeed;
+            set => _yawRotationSpeed = Math.Clamp(value, _minRotationSpeed, _maxRotationSpeed);
+        }
+        public float RollRotationSpeed
+        {
+            get => _rollRotationSpeed;
+            set => _rollRotationSpeed = Math.Clamp(value, _minRotationSpeed, _maxRotationSpeed);
+        }
+
+        public CameraAngleControl(Node3D targetNode, float pitch, float yaw, float roll)
+        {
+            _targetNode = targetNode;
+            Pitch = pitch;
+            Yaw = yaw;
+            Roll = roll;
+            applyRotation(Pitch,Yaw,Roll);
+        }
+        private float clampAngle(float angle, minAngle, maxAngle)
         {
             if (angle < -360.0f) angle += 360.0f;
             if (angle > 360.0f) angle -= 360.0f;
-            return Math.Clamp(angle, MinAngle, MaxAngle);
+            return Math.Clamp(angle, minAngle, maxAngle);
         }
-        //Mouse Function	
-        private float GetMouseScrollFactor()
+        private Vector2 clampOffset(Vector2 offset)
         {
-            float val = MouseWhellScrollFactor;
-            MouseWhellScrollFactor = 0;
-            return val;
+            var x = Math.Clamp(offset.X, _minMouseOffset, _maxMouseOffset);
+            var y = Math.Clamp(offset.Y, _minMouseOffset, _maxMouseOffset);
+            return new Vector2(x, y);
         }
-        public void CameraRotation(double delta)
+        private void applyRotation(float? pitch, float? yaw, float? roll)
         {
-            Vector2 rotation = (float)delta * MouseOffset * MouseRotaionSpeed;
-            if (rotation.LengthSquared() >= MOUSE_ROTATION_THR && IsMouseControl)
-            {
-                SetCameraPitch(ClampAngle(rotation.Y));
-                if (IsFree)
-                {
-
-                }
-            }
+            var rotation = _targetNode.RotationDegrees;
+            if (pitch.HasValue) rotation.X = pitch.Value;
+            if (yaw.HasValue) rotation.Y = yaw.Value;
+            if (roll.HasValue) rotation.Z = roll.Value;
+            _targetNode.RotationDegrees = rotation;
+        }
+        public void ResetRotation()
+        {
+            applyRotation(0, 0, 0);
+        }
+        public void SetPitch(float angle)
+        {
+            Pitch = angle;
+            applyRotation(angle, null, null);
+        }
+        public void SetYaw(float angle)
+        {
+            Yaw = angle;
+            applyRotation(null, angle, null);
+        }
+        public void SetRoll(float angle)
+        {
+            Roll = angle;
+            applyRotation(null, null, angle);
+        }
+        public void AddPitch(float delta)
+        {
+            Pitch += delta * PitchRotationSpeed;
+            applyRotation(Pitch, null, null);
+        }
+        public void AddYaw(float delta)
+        {
+            Yaw += delta * YawRotationSpeed;
+            applyRotation(null, Yaw, null);
+        }
+        public void AddRoll(float delta)
+        {
+            Roll += delta * RollRotationSpeed;
+            applyRotation(null, null, Roll);
         }
     }
 }
