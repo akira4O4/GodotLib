@@ -22,8 +22,8 @@ public partial class CameraPivot : Marker3D
 	}
 	public override void _Process(double delta)
 	{
-		CamAngle.AddPitch((float)delta);
-		CamAngle.AddYaw((float)delta);
+		CamAngle.UpdatePitch((float)delta);
+		CamAngle.UpdateYaw((float)delta);
 	}
 	public override void _Input(InputEvent @event)
 	{

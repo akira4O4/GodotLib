@@ -7,7 +7,7 @@ namespace CameraControl
         private float _speed = 1;
         private float _distance = 10;
         private readonly Camera3D _camera;
-        private readonly float _minDistance = 2;
+        private readonly float _minDistance = 0;
         private readonly float _maxDistance = 10;
         private readonly float _minSpeed = 1;
         private readonly float _maxSpeed = 10;

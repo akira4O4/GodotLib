@@ -21,6 +21,8 @@ namespace CameraControl
         //min max pitch rotation angle
         private readonly float _maxPitchAngle = 45.0f;
         private readonly float _minPitchAngle = -90.0f;
+        private readonly float _maxRollAngle = 45.0f;
+        private readonly float _minRollAngle = -45.0f;
 
         //min max mouse offset
         private readonly float _maxMouseOffset = 100.0f;
@@ -137,7 +139,7 @@ namespace CameraControl
             Roll = angle;
             applyRotation(null, null, angle);
         }
-        public void AddPitch(float delta)
+        public void UpdatePitch(float delta)
         {
 
             if (MouseOffsetY != 0)
@@ -149,7 +151,7 @@ namespace CameraControl
             }
 
         }
-        public void AddYaw(float delta)
+        public void UpdateYaw(float delta)
         {
             if (MouseOffsetX != 0)
             {
@@ -159,10 +161,10 @@ namespace CameraControl
                 MouseOffsetX = 0;
             }
         }
-        public void AddRoll(float delta)
+        public void UpdateRoll(float delta)
         {
-            Roll += delta * RollRotationSpeed;
-            applyRotation(null, null, Roll);
+            // Roll += delta * RollRotationSpeed;
+            // applyRotation(null, null, Roll);
         }
     }
 }
