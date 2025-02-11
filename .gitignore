@@ -7,3 +7,4 @@ assets/
 *.tscn
 *.godot
 *.import
+icon.svg

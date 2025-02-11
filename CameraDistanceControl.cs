@@ -9,12 +9,13 @@ namespace CameraControl
         private float _distance = 10;
         private float _targetDistance = 0;
 
+        private bool _isSetTargetDistance = false;
         private readonly Camera3D _camera;
-        partial readonly RayCast3D _rayCast;
-        private readonly float _minSpeed = 1;
-        private readonly float _maxSpeed = 10;
-        private readonly float _minDistance = 0;
-        private readonly float _maxDistance = 10;
+        private readonly RayCast3D _rayCast;
+        public float MinSpeed { get; set; } = 1;
+        public float MaxSpeed { get; set; } = 10;
+        public float MinDistance { get; set; } = 1;
+        public float MaxDistance { get; set; } = 30;
 
         public float Distance
         {
@@ -27,13 +28,13 @@ namespace CameraControl
         }
         public float TargetDistance
         {
-            private get => _targetDistance;
+            get => _targetDistance;
             set => _targetDistance = clampDistance(value);
         }
         public float Speed
         {
             get => _speed;
-            set => _speed = Math.Clamp(value, _minSpeed, _maxSpeed);
+            set => _speed = Math.Clamp(value, MinSpeed, MaxSpeed);
         }
 
         public CameraDistanceControl(Camera3D camera, float distance, RayCast3D rayCast)
@@ -41,11 +42,10 @@ namespace CameraControl
             _camera = camera;
             _rayCast = rayCast;
             Distance = TargetDistance = distance;
-            _rayCast.CastTo = _camera.GlobalPosition - _rayCast.GlobalPosition;
         }
         private float clampDistance(float distance)
         {
-            return Math.Clamp(distance, _minDistance, _maxDistance);
+            return Math.Clamp(distance, MinDistance, MaxDistance);
         }
         private void applyDistance()
         {
@@ -53,23 +53,30 @@ namespace CameraControl
             position.Z = Distance;
             _camera.Position = position;
         }
+
+        //Ray-->Camera
+        private void UpdateRayCastDirection()
+        {
+            _rayCast.TargetPosition = _camera.Position;
+        }
+
         public void Process(double delta)
         {
+            UpdateRayCastDirection();
             if (_rayCast.IsColliding())
             {
-                var collider = _rayCast.GetCollider();
-
-                if (collider != _camera)
+                Vector3 collisionPoint = _rayCast.GetCollisionPoint();
+                if (collisionPoint.Z < Distance)
                 {
-                    Vector3 collisionPoint = _rayCast.GetCollisionPoint();
-                    Distance = TargetDistance = collisionPoint.Z;
+                    TargetDistance = collisionPoint.Z;
                 }
+            }
 
-                if (Distance != TargetDistance)
-                {
-                    float t = 1 - Mathf.Exp(-Speed * (float)delta);
-                    Distance = Mathf.Lerp(Distance, TargetDistance, t);
-                }
+            if (Distance != TargetDistance)
+            {
+                float t = 1 - Mathf.Exp(-Speed * (float)delta);
+                Distance = Mathf.Lerp(Distance, TargetDistance, t);
+                GD.Print("this");
             }
         }
     }

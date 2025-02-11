@@ -5,7 +5,7 @@ namespace CameraControl
 {
     public class CameraAngleControl
     {
-        private Node3D _targetNode;
+        private Node3D _followNode;
         private float _pitch = 0;
         private float _yaw = 0;
         private float _roll = 0;
@@ -109,7 +109,7 @@ namespace CameraControl
         }
         public CameraAngleControl(Node3D followNode, float pitch, float yaw, float roll)
         {
-            _targetNode = targetNode;
+            _followNode = followNode;
             Pitch = pitch;
             Yaw = yaw;
             Roll = roll;
@@ -129,11 +129,11 @@ namespace CameraControl
         }
         private void applyRotation(float? pitch, float? yaw, float? roll)
         {
-            var rotation = _targetNode.RotationDegrees;
+            var rotation = _followNode.RotationDegrees;
             if (pitch.HasValue) rotation.X = pitch.Value;
             if (yaw.HasValue) rotation.Y = yaw.Value;
             if (roll.HasValue) rotation.Z = roll.Value;
-            _targetNode.RotationDegrees = rotation;
+            _followNode.RotationDegrees = rotation;
         }
         public void ResetRotation()
         {

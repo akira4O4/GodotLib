@@ -9,7 +9,7 @@ public partial class CameraFollowNode : Marker3D
 	{
 		CamAngle = new CameraAngleControl(this, 0, 0, 0)
 		{
-			PitchRotationSpeed = 10,
+			PitchRotationSpeed = 20,
 			YawRotationSpeed = 10
 		};
 		Input.SetMouseMode(Input.MouseModeEnum.Captured);
