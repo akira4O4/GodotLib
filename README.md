@@ -2,6 +2,14 @@
 
 ---
 
+## Node
+
+```bash
+CameraFollowPoint
+|_ Camera3D Node
+```
+---
+
 ## Feat:
 
 - Camera Distance Control

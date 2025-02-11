@@ -1,25 +1,21 @@
 using Godot;
 using System;
-/*
-Type:
-    FPS:| <--- <FollowPoint><Camera>      |
-    TPS:| <--- <FollowPoint> <-- <Camera>    |
 
-*/
 namespace CameraControl
 {
-    public class CameraDistanceControal
+    public class CameraDistanceControl
     {
         private float _speed = 1;
         private float _distance = 10;
-        private float _factor = 0;
+        private float _targetDistance = 0;
+
         private readonly Camera3D _camera;
-        private readonly float _minDistance = 0;
-        private readonly float _maxDistance = 10;
+        partial readonly RayCast3D _rayCast;
         private readonly float _minSpeed = 1;
         private readonly float _maxSpeed = 10;
-        private float _targetDistance = 0;
-        partial RayCast3D _rayCast;
+        private readonly float _minDistance = 0;
+        private readonly float _maxDistance = 10;
+
         public float Distance
         {
             get => _distance;
@@ -32,33 +28,20 @@ namespace CameraControl
         public float TargetDistance
         {
             private get => _targetDistance;
-            set
-            {
-                _targetDistance = clampDistance(value);
-            }
+            set => _targetDistance = clampDistance(value);
         }
         public float Speed
         {
             get => _speed;
             set => _speed = Math.Clamp(value, _minSpeed, _maxSpeed);
         }
-        public float Factor
-        {
-            get => _factor;
-            set
-            {
-                _factor = value;
-                TargetDistance = Distance + Speed * value;
-            }
-        }
 
-        public CameraDistanceControal(Camera3D camera, float distance, RayCast3D rayCast)
+        public CameraDistanceControl(Camera3D camera, float distance, RayCast3D rayCast)
         {
             _camera = camera;
             _rayCast = rayCast;
             Distance = TargetDistance = distance;
             _rayCast.CastTo = _camera.GlobalPosition - _rayCast.GlobalPosition;
-            applyDistance();
         }
         private float clampDistance(float distance)
         {
@@ -82,10 +65,10 @@ namespace CameraControl
                     Distance = TargetDistance = collisionPoint.Z;
                 }
 
-                //Adjust distance to target distance [smooth]
                 if (Distance != TargetDistance)
                 {
-                    Distance = Mathf.Lerp(Distance, TargetDistance, (float)delta * Speed);
+                    float t = 1 - Mathf.Exp(-Speed * (float)delta);
+                    Distance = Mathf.Lerp(Distance, TargetDistance, t);
                 }
             }
         }
