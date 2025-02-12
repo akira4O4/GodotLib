@@ -74,7 +74,6 @@ namespace Utils.Camera
             {
                 float t = 1 - Mathf.Exp(-Speed * (float)delta);
                 Distance = Mathf.Lerp(Distance, TargetDistance, t);
-                GD.Print("this");
             }
         }
     }

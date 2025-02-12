@@ -12,7 +12,6 @@ public partial class CameraPivot : Marker3D
 			PitchRotationSpeed = 20,
 			YawRotationSpeed = 10
 		};
-		Input.SetMouseMode(Input.MouseModeEnum.Captured);
 	}
 	public override void _Process(double delta)
 	{

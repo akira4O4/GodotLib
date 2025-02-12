@@ -1,6 +1,5 @@
 using Godot;
-using System;
-using CameraControl;
+using Utils.Camera;
 public partial class Camera : Camera3D
 {
     [Export] public RayCast3D RayCast { get; set; }
