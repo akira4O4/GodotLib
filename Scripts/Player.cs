@@ -2,7 +2,9 @@ using Godot;
 
 public partial class Player : CharacterBody3D
 {
-    public float Speed { get; set; } = 14.0f;
+    public float Mass { get; set; } = 50.0f;
+    public float MoveSpeed { get; set; } = 14.0f;
+    public float JumpSpeed { get; set; } = 14.0f;
     public float Gravity { get; set; } = 9.8f;
     public float FallAcceleration { get; set; } = 75.0f;
 
@@ -11,15 +13,15 @@ public partial class Player : CharacterBody3D
     {
         Input.SetMouseMode(Input.MouseModeEnum.Captured);
     }
-    public override void _PhysicsProcess(double delta)
+    private void Move(double delta)
     {
         var direction = Vector3.Zero;
 
-        if (Input.IsActionPressed("d"))
+        if (Input.IsActionPressed("a"))
         {
             direction.X += 1.0f;
         }
-        if (Input.IsActionPressed("a"))
+        if (Input.IsActionPressed("d"))
         {
             direction.X -= 1.0f;
         }
@@ -39,8 +41,8 @@ public partial class Player : CharacterBody3D
         }
 
         // Ground velocity
-        _targetVelocity.X = direction.X * Speed;
-        _targetVelocity.Z = direction.Z * Speed;
+        _targetVelocity.X = direction.X * MoveSpeed;
+        _targetVelocity.Z = direction.Z * MoveSpeed;
 
         // Vertical velocity
         if (!IsOnFloor()) // If in the air, fall towards the floor. Literally gravity
@@ -50,6 +52,16 @@ public partial class Player : CharacterBody3D
 
         // Moving the character
         Velocity = _targetVelocity;
+
+    }
+    private void Jump(double delta)
+    {
+
+    }
+    public override void _PhysicsProcess(double delta)
+    {
+        Move(delta);
+        Jump(delta);
         MoveAndSlide();
     }
 
