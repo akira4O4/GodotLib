@@ -1,15 +1,13 @@
 using Godot;
 using System;
 
-namespace CameraControl
+namespace Utils.Camera 
 {
     public class CameraDistanceControl
     {
         private float _speed = 1;
         private float _distance = 10;
         private float _targetDistance = 0;
-
-        private bool _isSetTargetDistance = false;
         private readonly Camera3D _camera;
         private readonly RayCast3D _rayCast;
         public float MinSpeed { get; set; } = 1;

@@ -1,11 +1,9 @@
 using Godot;
 using System;
 using CameraControl;
-public partial class Camera3d : Camera3D
+public partial class Camera : Camera3D
 {
     [Export] public RayCast3D RayCast { get; set; }
-    [Export] public RayCast3D RayForward { get; set; }
-    [Export] public RayCast3D RayBack { get; set; }
     private CameraDistanceControl Distance;
     public override void _Ready()
     {

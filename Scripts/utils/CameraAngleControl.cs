@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-namespace CameraControl
+namespace Utils.Camera 
 {
     public class CameraAngleControl
     {

@@ -1,13 +1,13 @@
 using Godot;
 using System;
-using CameraControl;
-public partial class CameraFollowNode : Marker3D
+using Utils.Camera;
+public partial class CameraPivot : Marker3D
 {
-	private CameraAngleControl CamAngle;
+	private CameraAngleControl Angle;
 
 	public override void _Ready()
 	{
-		CamAngle = new CameraAngleControl(this, 0, 0, 0)
+		Angle = new CameraAngleControl(this, 0, 0, 0)
 		{
 			PitchRotationSpeed = 20,
 			YawRotationSpeed = 10
@@ -16,14 +16,14 @@ public partial class CameraFollowNode : Marker3D
 	}
 	public override void _Process(double delta)
 	{
-		CamAngle.ProcessPitch(delta);
-		CamAngle.ProcessYaw(delta);
+		Angle.ProcessPitch(delta);
+		Angle.ProcessYaw(delta);
 	}
 	public override void _Input(InputEvent @event)
 	{
 		if (@event is InputEventMouseMotion mouseMotion)
 		{
-			CamAngle.SetMouseOffset(mouseMotion.Relative);
+			Angle.SetMouseOffset(mouseMotion.Relative);
 		}
 	}
 }
