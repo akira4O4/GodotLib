@@ -2,94 +2,72 @@ using System;
 using System.Security.Cryptography.X509Certificates;
 using Godot;
 using Utils.Camera;
+using Utils.Motion;
+
 public partial class Player : CharacterBody3D
 {
-    [Export] public Marker3D CameraPivot { get; set; }
-    [Export] public Marker3D ModelPivot { get; set; }
-    [Export] public Node3D CollisionShape { get; set; }
-    private float _moveSpeed = 14.0f;
-    private float _jumpSpeed = 14.0f;
-    public float Mass { get; set; } = 50.0f;
-    public float MoveSpeed
-    {
-        get => _moveSpeed;
-        set => Math.Max(0, value);
-    }
-    public float JumpSpeed
-    {
-        get => _moveSpeed;
-        set => Math.Max(0, value);
-    }
-    public float Gravity { get; set; } = 9.8f;
-    public float FallAcceleration { get; set; } = 75.0f;
-    private CameraAngleControl Angle;
-    private Vector3 _targetVelocity = Vector3.Zero;
+    [Export] public Camera3D Camera { get; set; }//Control camera distance
+    [Export] public Marker3D CameraPivot { get; set; } //Control camera rotation
+    [Export] public RayCast3D RayCast { get; set; }
+    [Export] public Node3D Model { get; set; } //Control model rotation
+    [Export] public CollisionShape3D CollisionShape { get; set; }//Control collisiton rotation
+
+    private CameraAngleControl CameraAngle;
+    private CameraDistanceControl CameraDistance;
+    private MotionControl Motion;
     public override void _Ready()
     {
+        CameraDistance = new CameraDistanceControl(Camera, 3, RayCast)
+        {
+            Speed = 10,
+            MinSpeed = 1,
+            MaxSpeed = 10,
+            MinDistance = 3,
+            MaxDistance = 20
+        };
+        CameraAngle = new CameraAngleControl(CameraPivot, 0, 0, 0)
+        {
+            PitchRotationSpeed = 20,
+            YawRotationSpeed = 10
+        };
+        Motion = new MotionControl();
     }
-
     public override void _PhysicsProcess(double delta)
     {
     }
     public override void _Process(double delta)
     {
-        move(delta);
-        jump(delta);
+        //Control Camera
+        CameraDistance.Process(delta);
+        CameraAngle.ProcessPitch(delta);
+        CameraAngle.ProcessYaw(delta);
+        //Motion Control 
+        Motion.Move(delta);
+        Motion.Jump(delta);
+        Motion.Fall(delta);
+        Velocity = _targetVelocity
         MoveAndSlide();
 
     }
-    private void move(double delta)
-    {
-        var direction = Vector3.Zero;
-
-        if (Input.IsActionPressed("w"))
-        {
-            direction.Z -= 1.0f;
-            var cameraDirection = CameraPivot.Basis.Z.Normalized();
-            var playerDirection = Basis.Z.Normalized();
-            float angle = Mathf.RadToDeg(playerDirection.AngleTo(cameraDirection.Normalized()));
-            GD.Print(angle);
-            if (angle > 0f)
-            {
-            }
-        }
-        if (Input.IsActionPressed("a"))//forward
-        {
-            direction.X -= 1.0f;
-        }
-        if (Input.IsActionPressed("d"))
-        {
-
-            direction.X += 1.0f;
-        }
-        if (Input.IsActionPressed("s"))
-        {
-            direction.Z += 1.0f;
-        }
-
-        if (direction != Vector3.Zero)
-        {
-            direction = direction.Normalized();
-            ModelPivot.Basis = Basis.LookingAt(direction);
-            CollisionShape.Basis = Basis.LookingAt(direction);
-        }
-
-        _targetVelocity.X = direction.X * MoveSpeed;
-        _targetVelocity.Z = direction.Z * MoveSpeed;
-
-        if (!IsOnFloor())
-        {
-            _targetVelocity.Y -= FallAcceleration * (float)delta;
-        }
-
-        Velocity = _targetVelocity;
-
-    }
-    private void jump(double delta)
-    {
-    }
     public override void _Input(InputEvent @event)
     {
+        if (@event is InputEventMouseMotion mouseMotion)
+        {
+            CameraAngle.SetMouseOffset(mouseMotion.Relative);
+        }
+        if (@event is InputEventMouseButton mouseEvent)
+        {
+            if (mouseEvent.ButtonIndex == MouseButton.WheelUp)
+            {
+                CameraDistance.TargetDistance -= mouseEvent.Factor;
+
+            }
+            else if (mouseEvent.ButtonIndex == MouseButton.WheelDown)
+            {
+                CameraDistance.TargetDistance += mouseEvent.Factor;
+            }
+        }
+
         // 检查是否是鼠标按键事件
         if (@event is InputEventMouseButton button && button.ButtonIndex == MouseButton.Left)
         {
@@ -108,7 +86,7 @@ public partial class Player : CharacterBody3D
         // if (@event is InputEventMouseMotion mouseMotion && isLeftButtonPressed)
         // {
         //     GD.Print("Move Mouse with Left Button Pressed");
-        //     Angle.SetMouseOffset(mouseMotion.Relative);
+        //     CameraAngle.SetMouseOffset(mouseMotion.Relative);
         // }
     }
 
