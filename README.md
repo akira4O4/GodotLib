@@ -14,3 +14,4 @@ CameraFollowPoint
 
 - Camera Distance Control
 - Camera Angle Control
+- Player Motion Control

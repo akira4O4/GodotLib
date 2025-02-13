@@ -9,21 +9,21 @@ public partial class Player : CharacterBody3D
     [Export] public Camera3D Camera { get; set; }//Control camera distance
     [Export] public Marker3D CameraPivot { get; set; } //Control camera rotation
     [Export] public RayCast3D RayCast { get; set; }
-    [Export] public Node3D Model { get; set; } //Control model rotation
-    [Export] public CollisionShape3D CollisionShape { get; set; }//Control collisiton rotation
+    [Export] public Marker3D ModelPivot { get; set; } //Control model rotation
+    [Export] public CollisionShape3D Collider { get; set; }//Control collisiton rotation
 
     private CameraAngleControl CameraAngle;
     private CameraDistanceControl CameraDistance;
     private MotionControl Motion;
     public override void _Ready()
     {
-        CameraDistance = new CameraDistanceControl(Camera, 3, RayCast)
+        CameraDistance = new CameraDistanceControl(Camera, 5, RayCast)
         {
-            Speed = 10,
+            Speed = 5,
             MinSpeed = 1,
             MaxSpeed = 10,
-            MinDistance = 3,
-            MaxDistance = 20
+            MinDistance = 2,
+            MaxDistance = 10
         };
         CameraAngle = new CameraAngleControl(CameraPivot, 0, 0, 0)
         {
@@ -31,24 +31,48 @@ public partial class Player : CharacterBody3D
             YawRotationSpeed = 10
         };
         Motion = new MotionControl();
-    }
-    public override void _PhysicsProcess(double delta)
-    {
-    }
-    public override void _Process(double delta)
-    {
-        //Control Camera
-        CameraDistance.Process(delta);
-        CameraAngle.ProcessPitch(delta);
-        CameraAngle.ProcessYaw(delta);
-        //Motion Control 
-        Motion.Move(delta);
-        Motion.Jump(delta);
-        Motion.Fall(delta);
-        Velocity = _targetVelocity
-        MoveAndSlide();
+        Input.SetMouseMode(Input.MouseModeEnum.Captured);
 
     }
+    private Vector3 _targetVelocity = Vector3.Zero;
+
+    public override void _PhysicsProcess(double delta)
+    {
+        //Control Camera
+        CameraAngle.ProcessPitch(delta);
+        CameraAngle.ProcessYaw(delta);
+        CameraDistance.ProcessDistance(delta);
+
+        //Motion Control 
+        var newVelocity = Motion.UniformMove();//only have  X and Z
+        _targetVelocity.X=newVelocity.X; 
+        _targetVelocity.Z=newVelocity.Z; 
+
+        if (newVelocity != Vector3.Zero)
+        {
+            ModelPivot.Basis = Basis.LookingAt(newVelocity.Normalized());
+            Collider.Basis = Basis.LookingAt(newVelocity.Normalized());
+        }
+
+        if (!IsOnFloor())
+        {
+            _targetVelocity.Y -= Motion.UniformFall() * (float)delta;
+        }
+
+        // Jumping.
+        if (IsOnFloor() && Input.IsActionJustPressed("space"))
+        {
+            _targetVelocity.Y = Motion.UniformJump();
+        }
+        Velocity = _targetVelocity;
+        MoveAndSlide();
+    }
+    private void changeCameraDistance()
+    {
+        CameraDistance.TargetDistance=5;
+        CameraDistance.Speed=10;
+    }
+    
     public override void _Input(InputEvent @event)
     {
         if (@event is InputEventMouseMotion mouseMotion)

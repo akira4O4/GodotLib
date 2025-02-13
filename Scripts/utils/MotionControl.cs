@@ -1,100 +1,116 @@
 using Godot;
-
 namespace Utils.Motion
 {
     public class MotionControl
     {
-        private float _maxJumpHeight = 3.0f;
+
+        private float _moveSpeed = 10.0f;
+        private float _jumpSpeed = 10.0f;
+
+        private float _maxMoveSpeed = 20.0f;
+        private float _maxJumpSpeed = 20.0f;
+
+        private float _moveAcceleration = 10.0f;
         private float _jumpAcceleration = 9.8f;
+
+        private float _inititalJumpSpeed = 0.0f;
+        private float _inititalMoveSpeed = 0.0f;
+
         private float _decelerationFactor = 1.0f;  // 上升减速的强度
         private float _fallingAcceleration = 20.0f;
 
-        private float _moveAcceleration = 10.0f;
-        private float _maxMoveAcceleration = 20.0f;
+        private float _maxJumpHeight = 3.0f;
 
         private float _gravity = 9.8f;
-        private float _inititalJumpVelocity = 0.0f;
-        private float _inititalMoveVelocity = 0.0f;
-        private float _currentVelocity = 0.0f;
+
+        private float _currentSpeed = 0.0f;
         private float _currentHeight = 0.0f;
+
         private float _timeElapsed = 0.0f;
         private Vector3 _targetVelocity = Vector3.Zero;
 
         public MotionControl()
         {
             //h=2gv0
-            _inititalJumpVelocity = Mathf.Sqrt(2 * _gravity * _maxJumpHeight);
+            _inititalJumpSpeed = Mathf.Sqrt(2 * _gravity * _maxJumpHeight);
         }
-        public void Move(double delta)
+
+        public Vector3 UniformMove()
         {
-            var moveDirection = Vector3.Zero;
+            var targetVelocity = Vector3.Zero;
 
             if (Input.IsActionPressed("w"))
             {
-                moveDirection.Z -= 1.0f;
-            }
-            if (Input.IsActionPressed("a"))//forward
-            {
-                moveDirection.X -= 1.0f;
-            }
-            if (Input.IsActionPressed("d"))
-            {
-                moveDirection.X += 1.0f;
+                targetVelocity.Z -= 1.0f;  // 向前
             }
             if (Input.IsActionPressed("s"))
             {
-                moveDirection.Z += 1.0f;
+                targetVelocity.Z += 1.0f;  // 向后
             }
 
-            if (moveDirection != Vector3.Zero)
+            if (Input.IsActionPressed("a"))
             {
-                moveDirection = moveDirection.Normalized();
-                // Model.Basis.LookingAt(moveDirection);
-                // CollisionShape.Basis.LookingAt(moveDirection);
+                targetVelocity.X -= 1.0f;  // 向左
             }
-
-            _targetVelocity.X = moveDirection.X * MoveSpeed;
-            _targetVelocity.Z = moveDirection.Z * MoveSpeed;
-        }
-        public Vector3 Direction()
-        {
-
-        }
-        public void Jump(double delta)
-        {
-            if (IsOnFloor() && Input.IsActionJustPressed("jump"))
+            if (Input.IsActionPressed("d"))
             {
-                _timeElapsed += (float)delta;
-                _currentVelocity = _initialJumpVelocity * Mathf.Exp(-_decelerationFactor * _timeElapsed);
-                _currentHeight = _initialJumpVelocity * _timeElapsed - 0.5f * _jumpAcceleration * Math.Pow(_timeElapsed, 2) * Mathf.Exp(-decelerationFactor * timeElapsed);
-                if (_currentHeight <= 0 && _currentHeight >= _maxJumpHeight)
-                {
-                    _timeElapsed = 0.0f;
-                }
-                _targetVelocity.Y = _currentHeight;
+                targetVelocity.X += 1.0f;  // 向右
             }
+
+            targetVelocity = targetVelocity.Normalized();
+
+            targetVelocity.X *= _moveSpeed;
+            targetVelocity.Z *= _moveSpeed;
+
+            return targetVelocity;
         }
-        public void Fall(float delta)
+
+        public float UniformJump()
         {
-            timeElapsed += (float)delta;
+            return _jumpSpeed;
+        }
+        public float UniformFall()
+        {
+            return _fallingAcceleration;
+        }
+
+        public float NonUniformMove(double delta)
+        {
+            return 0.0f;
+        }
+        public float NonUniformJump(double delta)
+        {
+            _timeElapsed += (float)delta;
+            _currentSpeed = _inititalJumpSpeed * Mathf.Exp(-_decelerationFactor * _timeElapsed);
+            _currentHeight = _inititalJumpSpeed * _timeElapsed - 0.5f * _jumpAcceleration * Mathf.Pow(_timeElapsed, 2) * Mathf.Exp(-_decelerationFactor * _timeElapsed);
+            if (_currentHeight <= 0 && _currentHeight >= _maxJumpHeight)
+            {
+                _timeElapsed = 0.0f;
+            }
+            _targetVelocity.Y = _currentHeight;
+
+            return 0.0f;
+        }
+        public void NonUniformFall(double delta)
+        {
+            _timeElapsed += (float)delta;
 
             // 加速下落：重力作用
-            _currentVelocity += _gravity * (float)delta;  // 加速落地，受重力影响
+            _currentSpeed += _gravity * (float)delta;  // 加速落地，受重力影响
 
             // 计算下落高度
-            _currentHeight -= 0.5f * _fallAcceleration * Math.Pow(_timeElapsed, 2);
+            _currentHeight -= 0.5f * _fallingAcceleration * Mathf.Pow(_timeElapsed, 2);
 
             // 如果物体落地，停止下落
             if (_currentHeight <= 0)
             {
                 _currentHeight = 0;
                 _timeElapsed = 0.0f;
-                isFalling = false;
             }
 
             // 更新物体位置
-            Vector3 velocity = Velocity;
-            velocity.y = currentHeight;
+            // Vector3 velocity = Velocity;
+            // velocity.y = currentHeight;
         }
 
 

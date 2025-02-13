@@ -1,13 +1,17 @@
 using Godot;
 using System;
 
-namespace Utils.Camera 
+namespace Utils.Camera
 {
+    enum CameraDistance{
+        Outside=10,
+        Inside=3,
+    }
     public class CameraDistanceControl
     {
-        private float _speed = 1;
-        private float _distance = 10;
-        private float _targetDistance = 0;
+        private float _speed = 1.0f;
+        private float _distance = 10.0f;
+        private float _targetDistance = 0.0f;
         private readonly Camera3D _camera;
         private readonly RayCast3D _rayCast;
         public float MinSpeed { get; set; } = 1;
@@ -57,20 +61,20 @@ namespace Utils.Camera
         {
             _rayCast.TargetPosition = _camera.Position;
         }
-
-        public void Process(double delta)
+        private void rayCollisionDetection()
         {
             UpdateRayCastDirection();
             if (_rayCast.IsColliding())
             {
                 Vector3 collisionPoint = _rayCast.GetCollisionPoint();
-                if (collisionPoint.Z < Distance)
-                {
-                    TargetDistance = collisionPoint.Z;
-                }
+                
+                TargetDistance=_rayCast.ToLocal(collisionPoint).Z;
             }
-
-            if (Distance != TargetDistance)
+        }
+        public void ProcessDistance(double delta)
+        {
+            rayCollisionDetection();
+            if (Distance!=TargetDistance)
             {
                 float t = 1 - Mathf.Exp(-Speed * (float)delta);
                 Distance = Mathf.Lerp(Distance, TargetDistance, t);
