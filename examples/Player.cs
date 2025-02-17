@@ -66,11 +66,6 @@ public partial class Player : CharacterBody3D
         Velocity = _targetVelocity;
         MoveAndSlide();
     }
-    private void changeCameraDistance()
-    {
-        CameraDistance.TargetDistance=5;
-        CameraDistance.Speed=10;
-    }
     
     public override void _Input(InputEvent @event)
     {

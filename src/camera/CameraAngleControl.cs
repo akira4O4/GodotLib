@@ -5,7 +5,7 @@ namespace GodtoLib.Camera
 {
     public class CameraAngleControl
     {
-        private Node3D _followNode;
+        private Node3D _cameraPivot;
         private float _pitch = 0;
         private float _yaw = 0;
         private float _roll = 0;
@@ -107,9 +107,9 @@ namespace GodtoLib.Camera
             get => _rollRotationSpeed;
             set => _rollRotationSpeed = Math.Clamp(value, _minRotationSpeed, _maxRotationSpeed);
         }
-        public CameraAngleControl(Node3D followNode, float pitch, float yaw, float roll)
+        public CameraAngleControl(Node3D cameraPivot, float pitch, float yaw, float roll)
         {
-            _followNode = followNode;
+            _cameraPivot = cameraPivot;
             Pitch = pitch;
             Yaw = yaw;
             Roll = roll;
@@ -129,11 +129,11 @@ namespace GodtoLib.Camera
         }
         private void applyRotation(float? pitch, float? yaw, float? roll)
         {
-            var rotation = _followNode.RotationDegrees;
+            var rotation = _cameraPivot.RotationDegrees;
             if (pitch.HasValue) rotation.X = pitch.Value;
             if (yaw.HasValue) rotation.Y = yaw.Value;
             if (roll.HasValue) rotation.Z = roll.Value;
-            _followNode.RotationDegrees = rotation;
+            _cameraPivot.RotationDegrees = rotation;
         }
         public void ResetRotation()
         {
