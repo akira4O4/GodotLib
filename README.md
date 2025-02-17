@@ -1,13 +1,5 @@
-# Godot 3D Camera Control
+# C# Toolkit For Godot
 
----
-
-## Node
-
-```bash
-CameraFollowPoint
-|_ Camera3D Node
-```
 ---
 
 ## Feat:
