@@ -1,7 +1,7 @@
 using Godot;
-namespace Utils.Motion
+namespace GodotLib.Motion
 {
-    public class MotionControl
+    public class PlayerMotionControl
     {
 
         private float _moveSpeed = 10.0f;

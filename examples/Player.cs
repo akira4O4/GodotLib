@@ -1,8 +1,7 @@
 using System;
-using System.Security.Cryptography.X509Certificates;
 using Godot;
-using Utils.Camera;
-using Utils.Motion;
+using Godotlib.Camera;
+using Godotlib.Motion;
 
 public partial class Player : CharacterBody3D
 {

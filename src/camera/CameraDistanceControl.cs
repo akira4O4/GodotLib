@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-namespace Utils.Camera
+namespace GodotLib.Camera
 {
     enum CameraDistance{
         Outside=10,

@@ -1,17 +1,10 @@
-# Godot 3D Camera Control
+# C# Toolkits For Godot
+
+*Support version: 4.x*  
 
 ---
+## UPDATES      
+- 2025/02/17: Camera Control
+- 2025/02/17: Player Motion Control
 
-## Node
-
-```bash
-CameraFollowPoint
-|_ Camera3D Node
-```
 ---
-
-## Feat:
-
-- Camera Distance Control
-- Camera Angle Control
-- Player Motion Control
