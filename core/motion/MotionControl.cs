@@ -1,5 +1,5 @@
 using Godot;
-namespace GodotLib.Motion
+namespace GodotLib.Core.Motion
 {
     public class PlayerMotionControl
     {
@@ -29,7 +29,7 @@ namespace GodotLib.Motion
         private float _timeElapsed = 0.0f;
         private Vector3 _targetVelocity = Vector3.Zero;
 
-        public MotionControl()
+        public PlayerMotionControl()
         {
             //h=2gv0
             _inititalJumpSpeed = Mathf.Sqrt(2 * _gravity * _maxJumpHeight);
