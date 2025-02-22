@@ -3,7 +3,7 @@ using GodotLib.Core.Camera;
 using GodotLib.Core.Motion;
 using GodtoLib.Core.Camera;
 using GodotLib.Utils;
-public partial class Player : CharacterBody3D
+public partial class TPPlayer : CharacterBody3D
 {
     [Export] public Camera3D Camera { get; set; }//Control camera distance
     [Export] public Marker3D CameraPivot { get; set; } //Control camera rotation
@@ -60,34 +60,35 @@ public partial class Player : CharacterBody3D
         if (Input.IsActionPressed("w"))
         {
             moveDirection = _cameraUtils.GetForward();
-            Utils.ChangeNodeRotationDegrees(ModelPivot, camDegrees, ignoreX: true);
-            Utils.ChangeNodeRotationDegrees(Collider, camDegrees, ignoreX: true);
+            Utils.SetNodeRotationDegrees(ModelPivot, camDegrees, ignoreX: true);
+            Utils.SetNodeRotationDegrees(Collider, camDegrees, ignoreX: true);
         }
         if (Input.IsActionPressed("s"))
         {
             moveDirection = _cameraUtils.GetBack();
             camDegrees.Y += 180.0f;
-            Utils.ChangeNodeRotationDegrees(ModelPivot, camDegrees, ignoreX: true);
-            Utils.ChangeNodeRotationDegrees(Collider, camDegrees, ignoreX: true);
+            Utils.SetNodeRotationDegrees(ModelPivot, camDegrees, ignoreX: true);
+            Utils.SetNodeRotationDegrees(Collider, camDegrees, ignoreX: true);
         }
         if (Input.IsActionPressed("a"))
         {
             moveDirection = _cameraUtils.GetLeft();
             camDegrees.Y += 90.0f;
-            Utils.ChangeNodeRotationDegrees(ModelPivot, camDegrees, ignoreX: true);
-            Utils.ChangeNodeRotationDegrees(Collider, camDegrees, ignoreX: true);
+            Utils.SetNodeRotationDegrees(ModelPivot, camDegrees, ignoreX: true);
+            Utils.SetNodeRotationDegrees(Collider, camDegrees, ignoreX: true);
 
         }
         if (Input.IsActionPressed("d"))
         {
             moveDirection = _cameraUtils.GetRight();
             camDegrees.Y -= 90.0f;
-            Utils.ChangeNodeRotationDegrees(ModelPivot, camDegrees, ignoreX: true);
-            Utils.ChangeNodeRotationDegrees(Collider, camDegrees, ignoreX: true);
+            Utils.SetNodeRotationDegrees(ModelPivot, camDegrees, ignoreX: true);
+            Utils.SetNodeRotationDegrees(Collider, camDegrees, ignoreX: true);
         }
 
-        moveDirection.Y = 0;
-        _targetVelocity = moveDirection * _moveSpeed;
+        // moveDirection.Y = 0;
+        _targetVelocity.X = moveDirection.X * _moveSpeed;
+        _targetVelocity.Z = moveDirection.Z * _moveSpeed;
 
         //Juamp and fall
         if (!IsOnFloor())
