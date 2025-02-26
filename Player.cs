@@ -7,37 +7,57 @@ public partial class Player : CharacterBody3D
     [Export] public Marker3D CameraPivot { get; set; } //Control camera rotation
     [Export] public Marker3D ModelPivot { get; set; } //Control model rotation
     [Export] public CollisionShape3D Collider { get; set; }//Control collisiton rotation
-
+    [Export] public RayCast3D CameraRaycasting { get; set; }
 
     public CameraControl CameraControl;
     public bool FreePerspective = false;
     public bool ControlPerspective = false;
-
+    private Vector3 _targetVelocity = Vector3.Zero;
+    private float _moveSpeed = 20;
     //Camera Args
+
+    private float _defaultCameraDistance = 6;
+    private float _defaultRunningCameraDistance = 10;
+    private bool _cameraIsBlocked = false;
 
     public override void _Ready()
     {
         Input.SetMouseMode(Input.MouseModeEnum.Captured);
 
-        CameraControl = new CameraControl(Camera, CameraPivot, 6)
+        initCameraControl();
+        initCameraRaycast();
+    }
+    private void initCameraControl()
+    {
+        CameraControl = new CameraControl(Camera, CameraPivot, _defaultCameraDistance)
         {
-            PitchRotationSpeed = 10,
-            YawRotationSpeed = 10,
+            Pitch = -30,
+            PitchRotationSpeed = 5,
+            YawRotationSpeed = 10
+
         };
     }
-
-    private Vector3 _targetVelocity = Vector3.Zero;
-    private float _moveSpeed = 20;
+    private void initCameraRaycast()
+    {
+        CameraRaycasting.Enabled = true;
+        CameraRaycasting.TargetPosition = Camera.Position;
+    }
 
     public override void _PhysicsProcess(double delta)
     {
-        CameraControl.Process(delta);
 
+        CameraControl.Process(delta);
+        cameraRaycastProcess();
+        playerMotionProcess(delta);
+    }
+    private void playerMotionProcess(double delta)
+    {
         //1、Sync player and camera direction
         //2、Sync model,collider rotation to move direction
         Vector3 moveDirection = Vector3.Zero;
         Vector3 camDegrees = Camera.GlobalRotationDegrees;
 
+        //Move Player
         if (Input.IsActionPressed("w"))
         {
             moveDirection = CameraControl.GetCameraForward();
@@ -84,22 +104,46 @@ public partial class Player : CharacterBody3D
         Velocity = _targetVelocity;
         MoveAndSlide();
     }
-
+    private void cameraRaycastProcess()
+    {
+        CameraRaycasting.TargetPosition = Camera.Position;
+        if (CameraRaycasting.IsColliding())
+        {
+            // GD.Print("CameraRaycasting.IsColliding");
+            Vector3 colliderPoint = CameraRaycasting.GetCollisionPoint();
+            Vector3 colliderNormal = CameraRaycasting.GetCollisionNormal();
+            var colliderObject = CameraRaycasting.GetCollider();
+            CameraControl.Distance = colliderPoint.Z;
+        }
+        else
+        {
+            if (!_cameraIsBlocked)
+            {
+                CameraControl.Distance = _defaultCameraDistance;
+            }
+        }
+    }
+    private void _on_area_3d_body_entered(Node node)
+    {
+        GD.Print("body entered");
+        _cameraIsBlocked = true;
+    }
+    private void _on_area_3d_body_exited(Node node)
+    {
+        GD.Print("body exited");
+        _cameraIsBlocked = false;
+    }
     public void AimObject()
     {
-
     }
-    
     public void LockObject()
     {
-
     }
     public void UnLockObject()
     {
-
     }
 
-    public override void _Input(InputEvent @event)
+    public override void _UnhandledInput(InputEvent @event)
     {
         if (@event is InputEventMouseMotion mouseMotion)
         {
@@ -146,8 +190,9 @@ public partial class Player : CharacterBody3D
                 }
             }
         }
-
+    }
+    public override void _Input(InputEvent @event)
+    {
 
     }
-
 }

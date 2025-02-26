@@ -1,6 +1,9 @@
 using Godot;
 using System;
 using GodotLib.Utils;
+using Godot.NativeInterop;
+using Microsoft.Win32.SafeHandles;
+using System.Threading;
 
 namespace GodotLib
 {
@@ -9,10 +12,16 @@ namespace GodotLib
         private readonly Camera3D _camera;
         private readonly Node3D _cameraPivot;
 
+        private float _fov;
         private float _distance;
         private float _pitch = 0, _yaw = 0, _roll = 0;
-        private float _xOffset = 0, _yOffset = 0;
-        private float _fov;
+        private float _distanceZoomSpeed = 10;
+
+        private float _cameraXOffset = 0;
+        private float _cameraYOffset = 0;
+
+        private float _cameraXOffsetSpeed = 5;
+        private float _cameraYOffsetSpeed = 5;
 
         private float _mouseXOffset = 0;
         private float _mouseYOffset = 0;
@@ -33,64 +42,44 @@ namespace GodotLib
         private readonly float _minRotationSpeed = 1;
         private readonly float _maxRotationSpeed = 100;
 
+        public float FOV
+        {
+            get => _fov;
+            set => _fov = value;
+        }
 
-        public float Distance { get; set; }
+        public float Distance
+        {
+            get => _distance;
+            set => _distance = value;
+        }
+        public float DistanceZoomSpeed
+        {
+            get => _distanceZoomSpeed;
+            set => _distanceZoomSpeed = value;
+        }
+
         public float Pitch
         {
             get => _pitch;
-            private set
-            {
-                _pitch = Math.Clamp(value, _minPitchAngle, _maxPitchAngle);
-                applyRotation(_pitch, null, null);
-            }
+            set => _pitch = Math.Clamp(value, _minPitchAngle, _maxPitchAngle);
         }
         public float Yaw
         {
             get => _yaw;
-            private set
+            set
             {
                 if (value < 0)
                     _yaw = -((-value) % 360.0f);
                 else
                     _yaw = value % 360.0f;
-                applyRotation(null, _yaw, null);
             }
         }
         public float Roll
         {
             get => _roll;
-            set
-            {
-                _roll = value;
-                applyRotation(null, null, _roll);
-            }
+            set => _roll = value;
         }
-
-        public float CameraXOffset { get; set; } = 0;
-        public float CameraYOffset { get; set; } = 0;
-        public float CameraXOffsetSpeed { get; set; } = 5;
-        public float CameraYOffsetSpeed { get; set; } = 10;
-
-        public float FOV { get; set; }
-        public float ZoomSpeed { get; set; }
-
-        //Reverse x and y axis or not
-        public bool YAxisReversed { get; set; } = false;
-        public bool XAxisReversed { get; set; } = false;
-
-        //Mouse xy offset 
-        public float MouseXOffset
-        {
-            get => _mouseXOffset;
-            set => _mouseXOffset = clampMouseOffset(value);
-        }
-        public float MouseYOffset
-        {
-            get => _mouseYOffset;
-            set => _mouseYOffset = clampMouseOffset(value);
-        }
-
-        //Angle rotation speed
         public float PitchRotationSpeed
         {
             get => _pitchRotationSpeed;
@@ -100,6 +89,52 @@ namespace GodotLib
         {
             get => _yawRotationSpeed;
             set => _yawRotationSpeed = Math.Clamp(value, _minRotationSpeed, _maxRotationSpeed);
+        }
+
+        public float CameraXOffset
+        {
+            get => _cameraXOffset;
+            set => _cameraXOffset = value;
+        }
+        public float CameraYOffset
+        {
+            get => _cameraYOffset;
+            set => _cameraYOffset = value;
+        }
+        public float CameraXOffsetSpeed
+        {
+            get => _cameraXOffsetSpeed;
+            set => _cameraXOffsetSpeed = value;
+        }
+        public float CameraYOffsetSpeed
+        {
+            get => _cameraYOffsetSpeed;
+            set => _cameraYOffsetSpeed = value;
+        }
+
+        public bool YAxisReversed { get; set; } = false;
+        public bool XAxisReversed { get; set; } = false;
+
+        //Mouse xy offset 
+        public float MouseXOffset
+        {
+            get
+            {
+                float offset = _mouseXOffset;
+                _mouseXOffset = 0;
+                return offset;
+            }
+            set => _mouseXOffset = clampMouseOffset(value);
+        }
+        public float MouseYOffset
+        {
+            get
+            {
+                float offset = _mouseYOffset;
+                _mouseYOffset = 0;
+                return offset;
+            }
+            set => _mouseYOffset = clampMouseOffset(value);
         }
 
         public CameraControl(Camera3D camera, Node3D cameraPivot)
@@ -112,6 +147,7 @@ namespace GodotLib
             _camera = camera;
             _cameraPivot = cameraPivot;
             Distance = distance;
+            applyDistance();
         }
         public CameraControl(Camera3D camera, Node3D cameraPivot, float distance, float pitch, float yaw, float roll)
         {
@@ -121,6 +157,7 @@ namespace GodotLib
             Pitch = pitch;
             Yaw = yaw;
             Roll = roll;
+            applyRotation();
         }
         public CameraControl(Camera3D camera, Node3D cameraPivot, float distance, float pitch, float yaw, float roll, float cameraXoffset, float cameraYoffset)
         {
@@ -132,53 +169,83 @@ namespace GodotLib
             Roll = roll;
             CameraXOffset = cameraXoffset;
             CameraYOffset = cameraYoffset;
+            applyDistance();
+            applyRotation();
         }
 
         public void Process(double delta)
         {
-            //Camera distance control
-            applyDistance();
+
+            if (_camera.Position.Z != _distance)
+            {
+                float _d = MathUtils.NonLinearInterpolation(_camera.Position.Z, _distance, _distanceZoomSpeed * (float)delta);
+                applyDistance(_d);
+            }
 
             //Camera rotation control
-            if (MouseYOffset != 0)
+            if (_mouseYOffset != 0)
             {
                 float offset = (YAxisReversed ? -1 : 1) * MouseYOffset;
-                Pitch += (float)delta * offset * PitchRotationSpeed;
-                MouseYOffset = 0;
+                Pitch += (float)delta * offset * _pitchRotationSpeed;
+                applyRotation();
             }
-            if (MouseXOffset != 0)
+            if (_mouseXOffset != 0)
             {
                 float offset = (XAxisReversed ? 1 : -1) * MouseXOffset;
-                Yaw += (float)delta * offset * YawRotationSpeed;
-                MouseXOffset = 0;
+                Yaw += (float)delta * offset * _yawRotationSpeed;
+                applyRotation();
             }
-            if (CameraXOffset != _camera.Position.X)
-            {
-                var positon = _camera.Position;
-                positon.X = MathUtils.NonLinearInterpolation(positon.X, CameraXOffset, CameraXOffsetSpeed * (float)delta);
-                _camera.Position = positon;
-            }
+
+            // if (_cameraXOffset != _camera.Position.X)
+            // {
+            //     var positon = _camera.Position;
+            //     positon.X = MathUtils.NonLinearInterpolation(positon.X, _cameraXOffset, _cameraXOffsetSpeed * (float)delta);
+            //     _camera.Position = positon;
+            // }
 
         }
 
-        private void applyRotation(float? pitch, float? yaw, float? roll)
-        {
-            Vector3 rotation = _cameraPivot.RotationDegrees;
-            if (pitch.HasValue) rotation.X = pitch.Value;
-            if (yaw.HasValue) rotation.Y = yaw.Value;
-            if (roll.HasValue) rotation.Z = roll.Value;
-            _cameraPivot.RotationDegrees = rotation;
-        }
-        private void applyDistance()
+        // private void applyPitch(float? angle = null)
+        // {
+        //     float _angle = angle.HasValue ? angle.Value : _pitch;
+        //     applyRotation(pitch:_angle);
+        // }
+        // private void applyYaw(float? angle = null)
+        // {
+        //     float _angle = angle.HasValue ? angle.Value : _pitch;
+        //     applyRotation(yaw: _angle);
+        // }
+        // private void applyRoll(float? angle = null)
+        // {
+        //     float _angle = angle.HasValue ? angle.Value : _pitch;
+        //     applyRotation(roll: _angle);
+        // }
+        private void applyDistance(float? distance = null)
         {
             Vector3 position = _camera.Position;
-            position.Z = Distance;
+            position.Z = distance.HasValue ? distance.Value : _distance;
             _camera.Position = position;
+        }
+        private void applyRotation(float? pitch = null, float? yaw = null, float? roll = null)
+        {
+            if(_camera.RotationDegrees.X==_pitch)
+            {
+                //////
+            } 
+            Vector3 rotation = _cameraPivot.RotationDegrees;
+
+            rotation.X = pitch.HasValue ? pitch.Value : _pitch;
+            rotation.Y = yaw.HasValue ? yaw.Value : _yaw;
+            rotation.Z = roll.HasValue ? roll.Value : _roll;
+            // if (pitch.HasValue) rotation.X = pitch.Value;
+            // if (yaw.HasValue) rotation.Y = yaw.Value;
+            // if (roll.HasValue) rotation.Z = roll.Value;
+            _cameraPivot.RotationDegrees = rotation;
         }
 
         public void UpdateMouseOffset(Vector2 offset)
         {
-            if (offset.LengthSquared() >= 0.01)
+            if (offset.LengthSquared() >= 0.1)
             {
                 MouseXOffset = offset.X;
                 MouseYOffset = offset.Y;
