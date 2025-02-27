@@ -113,25 +113,12 @@ public partial class Player : CharacterBody3D
             Vector3 colliderPoint = CameraRaycasting.GetCollisionPoint();
             Vector3 colliderNormal = CameraRaycasting.GetCollisionNormal();
             var colliderObject = CameraRaycasting.GetCollider();
-            CameraControl.Distance = colliderPoint.Z;
+            CameraControl.Distance = CameraRaycasting.ToLocal(colliderPoint).Z + 0.1f;
         }
         else
         {
-            if (!_cameraIsBlocked)
-            {
-                CameraControl.Distance = _defaultCameraDistance;
-            }
+            CameraControl.Distance = _defaultCameraDistance;
         }
-    }
-    private void _on_area_3d_body_entered(Node node)
-    {
-        GD.Print("body entered");
-        _cameraIsBlocked = true;
-    }
-    private void _on_area_3d_body_exited(Node node)
-    {
-        GD.Print("body exited");
-        _cameraIsBlocked = false;
     }
     public void AimObject()
     {
