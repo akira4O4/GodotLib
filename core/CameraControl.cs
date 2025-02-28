@@ -157,6 +157,7 @@ namespace GodotLib
             Pitch = pitch;
             Yaw = yaw;
             Roll = roll;
+            applyDistance();
             applyRotation();
         }
         public CameraControl(Camera3D camera, Node3D cameraPivot, float distance, float pitch, float yaw, float roll, float cameraXoffset, float cameraYoffset)
@@ -187,14 +188,13 @@ namespace GodotLib
             {
                 float offset = (YAxisReversed ? -1 : 1) * MouseYOffset;
                 Pitch += (float)delta * offset * _pitchRotationSpeed;
-                applyRotation();
             }
             if (_mouseXOffset != 0)
             {
                 float offset = (XAxisReversed ? 1 : -1) * MouseXOffset;
                 Yaw += (float)delta * offset * _yawRotationSpeed;
-                applyRotation();
             }
+            applyRotation();
 
             // if (_cameraXOffset != _camera.Position.X)
             // {
@@ -204,46 +204,64 @@ namespace GodotLib
             // }
 
         }
-
-        // private void applyPitch(float? angle = null)
-        // {
-        //     float _angle = angle.HasValue ? angle.Value : _pitch;
-        //     applyRotation(pitch:_angle);
-        // }
-        // private void applyYaw(float? angle = null)
-        // {
-        //     float _angle = angle.HasValue ? angle.Value : _pitch;
-        //     applyRotation(yaw: _angle);
-        // }
-        // private void applyRoll(float? angle = null)
-        // {
-        //     float _angle = angle.HasValue ? angle.Value : _pitch;
-        //     applyRotation(roll: _angle);
-        // }
         private void applyDistance(float? distance = null)
         {
+            bool hasNewDistance = false;
             Vector3 position = _camera.Position;
-            position.Z = distance.HasValue ? distance.Value : _distance;
-            _camera.Position = position;
+            if (distance.HasValue)
+            {
+                if (position.Z != distance.Value)
+                {
+                    position.Z = distance.Value;
+                    hasNewDistance = true;
+                }
+            }
+            else
+            {
+                if (position.Z != _distance)
+                {
+                    position.Z = _distance;
+                    hasNewDistance = true;
+                }
+            }
+
+            if (hasNewDistance)
+                _camera.Position = position;
         }
+        
         private void applyRotation(float? pitch = null, float? yaw = null, float? roll = null)
         {
-            if(_camera.RotationDegrees==new Vector3(_pitch,_yaw,_roll))
+            Vector3 currCameraRotation = _cameraPivot.RotationDegrees;
+            bool hasInput = pitch.HasValue || yaw.HasValue || roll.HasValue;
+
+            if (hasInput)
             {
-                return;
-            } 
-            Vector3 rotation = _cameraPivot.RotationDegrees;
-             if(_camera.RotationDegrees!=_pitch)
-             {
-                  rotation.X = pitch.Value;
-             }
-            rotation.X = pitch.HasValue ? pitch.Value : _pitch;
-            rotation.Y = yaw.HasValue ? yaw.Value : _yaw;
-            rotation.Z = roll.HasValue ? roll.Value : _roll;
-            // if (pitch.HasValue) rotation.X = pitch.Value;
-            // if (yaw.HasValue) rotation.Y = yaw.Value;
-            // if (roll.HasValue) rotation.Z = roll.Value;
-            _cameraPivot.RotationDegrees = rotation;
+                Vector3 newRotation = new Vector3(
+                    pitch.HasValue ? pitch.Value : currCameraRotation.X,
+                    yaw.HasValue ? yaw.Value : currCameraRotation.Y,
+                    roll.HasValue ? roll.Value : currCameraRotation.Z
+                );
+
+                if (currCameraRotation != newRotation)
+                {
+                    _cameraPivot.RotationDegrees = newRotation;
+                }
+            }
+            else
+            {
+                //Maybe update
+                Vector3 newRotaion = new Vector3(_pitch, _yaw, _roll);
+
+                if (currCameraRotation != newRotaion)
+                {
+                    // rotation.X = _pitch;
+                    // rotation.Y = _yaw;
+                    // rotation.Z = _roll;
+                    // _cameraPivot.RotationDegrees = rotation;
+                    _cameraPivot.RotationDegrees = newRotation;
+
+                }
+            }
         }
 
         public void UpdateMouseOffset(Vector2 offset)
