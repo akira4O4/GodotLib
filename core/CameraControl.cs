@@ -51,12 +51,18 @@ namespace GodotLib
         public float Distance
         {
             get => _distance;
-            set => _distance = value;
+            set
+            {
+                _distance = Mathf.Max(0.5, value);
+            }
         }
         public float DistanceZoomSpeed
         {
             get => _distanceZoomSpeed;
-            set => _distanceZoomSpeed = value;
+            set
+            {
+                _distanceZoomSpeed = Math.Max(1, val);
+            }
         }
 
         public float Pitch
@@ -228,7 +234,7 @@ namespace GodotLib
             if (hasNewDistance)
                 _camera.Position = position;
         }
-        
+
         private void applyRotation(float? pitch = null, float? yaw = null, float? roll = null)
         {
             Vector3 currCameraRotation = _cameraPivot.RotationDegrees;
