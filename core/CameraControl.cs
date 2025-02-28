@@ -228,12 +228,15 @@ namespace GodotLib
         }
         private void applyRotation(float? pitch = null, float? yaw = null, float? roll = null)
         {
-            if(_camera.RotationDegrees.X==_pitch)
+            if(_camera.RotationDegrees==new Vector3(_pitch,_yaw,_roll))
             {
-                //////
+                return;
             } 
             Vector3 rotation = _cameraPivot.RotationDegrees;
-
+             if(_camera.RotationDegrees!=_pitch)
+             {
+                  rotation.X = pitch.Value;
+             }
             rotation.X = pitch.HasValue ? pitch.Value : _pitch;
             rotation.Y = yaw.HasValue ? yaw.Value : _yaw;
             rotation.Z = roll.HasValue ? roll.Value : _roll;
