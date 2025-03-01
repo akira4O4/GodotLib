@@ -12,23 +12,19 @@ public partial class Player : CharacterBody3D
     [Export] public CollisionShape3D BodyCollider { get; set; }//Control collisiton rotation
     [Export] public RayCast3D Player2CameraRay { get; set; } // Player-->Camera
 
-    [Export] public RayCast3D CameraRay1 { get; set; } // Camera-->
-    [Export] public RayCast3D CameraRay2 { get; set; } // Camera-->
-    [Export] public RayCast3D CameraRay3 { get; set; } // Camera-->
-    [Export] public RayCast3D CameraRay4 { get; set; } // Camera-->
-    [Export] public RayCast3D CameraRay5 { get; set; } // Camera-->
-    [Export] public RayCast3D CameraRay6 { get; set; } // Camera-->
-    [Export] public RayCast3D CameraRay7 { get; set; } // Camera-->
+    // [Export] public RayCast3D CameraRay1 { get; set; } // Camera-->
+    // [Export] public RayCast3D CameraRay2 { get; set; } // Camera-->
+    // [Export] public RayCast3D CameraRay3 { get; set; } // Camera-->
+    // [Export] public RayCast3D CameraRay4 { get; set; } // Camera-->
+    // [Export] public RayCast3D CameraRay5 { get; set; } // Camera-->
+    // [Export] public RayCast3D CameraRay6 { get; set; } // Camera-->
+    // [Export] public RayCast3D CameraRay7 { get; set; } // Camera-->
 
     [Export] public CollisionShape3D CameraCollider { get; set; }//Control collisiton rotation
 
     public CameraControl CameraControl;
-    public bool FreePerspective = false;
-    public bool ControlPerspective = false;
     private Vector3 _targetVelocity = Vector3.Zero;
     private float _moveSpeed = 20;
-    //Camera Args
-
     private float _defaultCameraDistance = 6;
     private float _defaultRunningCameraDistance = 10;
     private bool _cameraIsSafe = true;
@@ -55,7 +51,7 @@ public partial class Player : CharacterBody3D
     {
         Player2CameraRay.Enabled = true;
         Player2CameraRay.TargetPosition = Camera.Position;
-        _safeDistance = CameraRay1.TargetPosition.Length();
+        // _safeDistance = CameraRay1.TargetPosition.Length();
     }
 
     public override void _PhysicsProcess(double delta)
@@ -64,7 +60,6 @@ public partial class Player : CharacterBody3D
         CameraControl.Process(delta);
         cameraRaycastProcess();
         playerMotionProcess(delta);
-        GD.Print($"Camera is safe: {_cameraIsSafe}");
     }
     private void playerMotionProcess(double delta)
     {
@@ -122,61 +117,57 @@ public partial class Player : CharacterBody3D
     }
     private void cameraRaycastProcess()
     {
-        _cameraIsSafe = true;
 
-        //Check camere is safe or not
-        foreach (RayCast3D ray in Camera.GetChildren().OfType<RayCast3D>())
-        {
-            if (ray.IsColliding())
-            {
-                _cameraIsSafe = false;
-                preChangeCameraDistance(CameraRay1);
-            }
-        }
+        // foreach (RayCast3D ray in Camera.GetChildren().OfType<RayCast3D>())
+        // {
+        //     if (ray.IsColliding())
+        //     {
+        //         _cameraIsSafe = false;
+        //     }
+        // }
 
         if (Player2CameraRay.IsColliding())
         {
             Vector3 colliderPoint = Player2CameraRay.GetCollisionPoint();
             Vector3 colliderNormal = Player2CameraRay.GetCollisionNormal();
             var colliderObject = Player2CameraRay.GetCollider();
-            CameraControl.DistanceZoomSpeed = 10;
-            CameraControl.Distance = Player2CameraRay.ToLocal(colliderPoint).Length() - 0.5f;
-        }
-        else
-        {
-            if (_cameraIsSafe && CameraControl.Distance != _defaultCameraDistance)
+
+            if (colliderObject is Area3D area)
             {
-                CameraControl.DistanceZoomSpeed = 5;
-                CameraControl.Distance = _defaultCameraDistance;
+                if (area.Name != "CameraArea3D")
+                {
+                    _cameraIsSafe = false;
+                    CameraControl.DistanceZoomSpeed = 8;
+                    CameraControl.Distance = Player2CameraRay.ToLocal(colliderPoint).Length() - 0.5f;
+                }
+            }
+            else
+            {
+                _cameraIsSafe = false;
+                CameraControl.DistanceZoomSpeed = 8;
+                CameraControl.Distance = Player2CameraRay.ToLocal(colliderPoint).Length() - 0.5f;
+
             }
         }
+        if (_cameraIsSafe && CameraControl.Distance != _defaultCameraDistance)
+        {
+            CameraControl.DistanceZoomSpeed = 2;
+            CameraControl.Distance = _defaultCameraDistance;
+        }
     }
 
-    private void preChangeCameraDistance(RayCast3D ray)
-    {
-        // Vector3 colliderPoint = ray.GetCollisionPoint();
-        // Vector3 colliderNormal = ray.GetCollisionNormal();
-        // var colliderObject = ray.GetCollider();
-
-        // CameraControl.DistanceZoomSpeed = 10;
-        // float offset = ray.TargetPosition.Length() - Camera.ToLocal(colliderPoint).Length();
-        // CameraControl.Distance = CameraControl.Distance - offset + 0.
-    }
     private void onCameraCollisonBodyEntered(Node body)
     {
-        // GD.Print("onCameraCollisonBodyEntered");
-        // //Slow change
-        // CameraControl.DistanceZoomSpeed = 2;
-        // CameraControl.Distance -= 1;
+        GD.Print("Camera is not safe");
+        if (body.Name != "CharacterBody3D")
+        {
+            _cameraIsSafe = false;
+        }
     }
     private void onCameraCollisionBodyExited(Node body)
     {
-        // GD.Print("onCameraCollisionBodyExited");
-        // if (CameraControl.Distance != _defaultCameraDistance)
-        // {
-        //     CameraControl.DistanceZoomSpeed = 2;
-        //     CameraControl.Distance = _defaultCameraDistance;
-        // }
+        GD.Print("Camera is safe");
+        _cameraIsSafe = true;
     }
 
     public override void _UnhandledInput(InputEvent @event)
