@@ -1,0 +1,90 @@
+[gd_scene load_steps=5 format=3 uid="uid://wbpj6vt7u0ia"]
+
+[ext_resource type="Script" path="res://Scripts/GodotLib/Scripts/Player.cs" id="1_4aoj3"]
+[ext_resource type="PackedScene" uid="uid://coume68ds2xuf" path="res://Assets/human_body.glb" id="2_ib61f"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_bwyaf"]
+size = Vector3(1.72757, 4.43916, 1.06396)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_0fwyq"]
+
+[node name="Player" type="Node"]
+
+[node name="CharacterBody3D" type="CharacterBody3D" parent="." node_paths=PackedStringArray("Camera", "CameraPivot", "ModelPivot", "BodyCollider", "Player2CameraRay", "CameraRay1", "CameraRay2", "CameraRay3", "CameraRay4", "CameraRay5", "CameraRay6", "CameraRay7")]
+script = ExtResource("1_4aoj3")
+Camera = NodePath("CameraPivot/Camera")
+CameraPivot = NodePath("CameraPivot")
+ModelPivot = NodePath("ModelPivot")
+BodyCollider = NodePath("BodyCollder")
+Player2CameraRay = NodePath("CameraPivot/Player2CameraRay")
+CameraRay1 = NodePath("CameraPivot/Camera/CameraRay1")
+CameraRay2 = NodePath("CameraPivot/Camera/CameraRay2")
+CameraRay3 = NodePath("CameraPivot/Camera/CameraRay3")
+CameraRay4 = NodePath("CameraPivot/Camera/CameraRay4")
+CameraRay5 = NodePath("CameraPivot/Camera/CameraRay5")
+CameraRay6 = NodePath("CameraPivot/Camera/CameraRay6")
+CameraRay7 = NodePath("CameraPivot/Camera/CameraRay7")
+
+[node name="BodyCollder" type="CollisionShape3D" parent="CharacterBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0196993, 2.24214, 0.000488073)
+shape = SubResource("BoxShape3D_bwyaf")
+
+[node name="ModelPivot" type="Marker3D" parent="CharacterBody3D"]
+transform = Transform3D(1, 0, -1.74846e-07, 0, 1, 0, 1.74846e-07, 0, 1, 0, 0, 0)
+
+[node name="Sketchfab_Scene" parent="CharacterBody3D/ModelPivot" instance=ExtResource("2_ib61f")]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0)
+
+[node name="CameraPivot" type="Marker3D" parent="CharacterBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.15912, 0)
+
+[node name="Player2CameraRay" type="RayCast3D" parent="CharacterBody3D/CameraPivot"]
+target_position = Vector3(0, 0, 6)
+collide_with_areas = true
+debug_shape_custom_color = Color(0, 1, 0, 0.439216)
+
+[node name="Camera" type="Camera3D" parent="CharacterBody3D/CameraPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 6)
+
+[node name="CameraRay1" type="RayCast3D" parent="CharacterBody3D/CameraPivot/Camera"]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0, 0, 0)
+target_position = Vector3(0, 0, 1)
+debug_shape_custom_color = Color(0, 0, 1, 0.521569)
+
+[node name="CameraRay2" type="RayCast3D" parent="CharacterBody3D/CameraPivot/Camera"]
+transform = Transform3D(0.5, 0, 0.866025, 0, 1, 0, -0.866025, 0, 0.5, 0, 0, 0)
+target_position = Vector3(0, 0, 1)
+debug_shape_custom_color = Color(0, 0, 1, 0.521569)
+
+[node name="CameraRay3" type="RayCast3D" parent="CharacterBody3D/CameraPivot/Camera"]
+transform = Transform3D(0.866025, 0, 0.5, 0, 1, 0, -0.5, 0, 0.866025, 0, 0, 0)
+target_position = Vector3(0, 0, 1)
+debug_shape_custom_color = Color(0, 0, 1, 0.521569)
+
+[node name="CameraRay4" type="RayCast3D" parent="CharacterBody3D/CameraPivot/Camera"]
+target_position = Vector3(0, 0, 1)
+debug_shape_custom_color = Color(0, 0, 1, 0.521569)
+
+[node name="CameraRay5" type="RayCast3D" parent="CharacterBody3D/CameraPivot/Camera"]
+transform = Transform3D(0.866025, 0, -0.5, 0, 1, 0, 0.5, 0, 0.866025, 0, 0, 0)
+target_position = Vector3(0, 0, 1)
+debug_shape_custom_color = Color(0, 0, 1, 0.521569)
+
+[node name="CameraRay6" type="RayCast3D" parent="CharacterBody3D/CameraPivot/Camera"]
+transform = Transform3D(0.5, 0, -0.866025, 0, 1, 0, 0.866025, 0, 0.5, 0, 0, 0)
+target_position = Vector3(0, 0, 1)
+debug_shape_custom_color = Color(0, 0, 1, 0.521569)
+
+[node name="CameraRay7" type="RayCast3D" parent="CharacterBody3D/CameraPivot/Camera"]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 0, 0, 0)
+target_position = Vector3(0, 0, 1)
+debug_shape_custom_color = Color(0, 0, 1, 0.521569)
+
+[node name="CameraArea3D" type="Area3D" parent="CharacterBody3D/CameraPivot/Camera"]
+
+[node name="CameraCollder" type="CollisionShape3D" parent="CharacterBody3D/CameraPivot/Camera/CameraArea3D"]
+shape = SubResource("SphereShape3D_0fwyq")
+disabled = true
+
+[connection signal="body_entered" from="CharacterBody3D/CameraPivot/Camera/CameraArea3D" to="CharacterBody3D" method="onCameraCollisonBodyEntered"]
+[connection signal="body_exited" from="CharacterBody3D/CameraPivot/Camera/CameraArea3D" to="CharacterBody3D" method="onCameraCollisionBodyExited"]

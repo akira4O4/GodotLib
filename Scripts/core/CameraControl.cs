@@ -53,7 +53,7 @@ namespace GodotLib
             get => _distance;
             set
             {
-                _distance = Mathf.Max(0.5, value);
+                _distance = Mathf.Max(0.5f, value);
             }
         }
         public float DistanceZoomSpeed
@@ -61,7 +61,7 @@ namespace GodotLib
             get => _distanceZoomSpeed;
             set
             {
-                _distanceZoomSpeed = Math.Max(1, val);
+                _distanceZoomSpeed = Math.Max(1, value);
             }
         }
 
@@ -256,9 +256,9 @@ namespace GodotLib
             else
             {
                 //Maybe update
-                Vector3 newRotaion = new Vector3(_pitch, _yaw, _roll);
+                Vector3 newRotation = new Vector3(_pitch, _yaw, _roll);
 
-                if (currCameraRotation != newRotaion)
+                if (currCameraRotation != newRotation)
                 {
                     // rotation.X = _pitch;
                     // rotation.Y = _yaw;
